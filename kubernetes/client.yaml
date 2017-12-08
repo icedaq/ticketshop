@@ -1,0 +1,22 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: ticketshop-client-deployment
+  labels:
+    app: ticketshop-client
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ticketshop-client
+  template:
+    metadata:
+      labels:
+        app: ticketshop-client
+    spec:
+      containers:
+      - name: ticketshop-client
+        image: gcr.io/default-1296/ticketclient:latest
+        env:
+        - name: APIURL
+          value: 'http://35.190.77.16/api'

@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ticketserver
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 9001
+  type: NodePort
+  selector:
+    app: ticketserver
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ticket-ingress
+spec:
+  backend:
+    serviceName: ticketserver
+    servicePort: 80
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: ticketserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ticketserver
+  template:
+    metadata:
+      labels:
+        app: ticketserver
+    spec:
+      containers:
+      - image: gcr.io/default-1296/ticketserver:latest
+        name: ticketserver
+        env:
+        - name: DBBACKEND
+          value: 'spanner'
+        - name: DBCONSTRING
+          value: 'projects/default-1296/instances/ticketshop/databases/ticketshop'
+        ports:
+        - containerPort: 9001
+          name: ticketserver
+        volumeMounts:
+            - name: "service-account"
+              mountPath: "/var/run/secret/cloud.google.com"
+            - name: "certs"
+              mountPath: "/etc/ssl/certs"
+      volumes:
+        - name: "service-account"
+          secret:
+            secretName: "spanner"
+        - name: "certs"
+          hostPath:
+            path: "/etc/ssl/certs"

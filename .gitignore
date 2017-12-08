@@ -1,0 +1,27 @@
+# macOS stuff
+.DS_Store
+
+# Vagrant
+vagrant/*.log
+vagrant/.vagrant/
+
+# Ignore binaries
+docker/client/ticketclient
+docker/server/ticketserver
+app/src/icedaq.ch/ticketclient
+app/src/icedaq.ch/ticketserver
+
+# Frontend stuff
+frontend/node_modules
+
+# ignore gopath stuff
+app/bin
+app/pkg
+app/src/*
+!app/src/icedaq.ch/
+#app/src/icedaq.ch/ticketclient
+#app/src/icedaq.ch/ticketserver
+
+# Kubernetes secrets
+kubernetes/service-account.json
+
