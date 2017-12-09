@@ -11,7 +11,7 @@ all: clean fmt lint cbuild sbuild copy
 # build the client for linux
 cbuild:
 	@echo "+ $@"
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o ticketclient client.go
+	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o ticketclient client.go monitoring.go
 
 # build the server for linux
 sbuild:
@@ -24,7 +24,7 @@ rserver:
 
 rclient:
 	@echo "+ $@"
-	go run client.go
+	go run client.go monitoring.go
 
 # copy the static binaries to the corresponding docker folders.
 copy:

@@ -46,10 +46,12 @@ type mydatabase interface {
 
 type mysql struct {
 	connectionString string
+	myMon            *mon
 }
 
 type myspanner struct {
 	connectionString string
+	myMon            *mon
 	ctx              context.Context
 	client           *spanner.Client
 	adminClient      *database.DatabaseAdminClient
@@ -205,6 +207,9 @@ func (m mysql) get(class string) []interface{} {
 
 func (m mysql) buy(showId int64) bool {
 
+	// Start the timer
+	start := time.Now()
+
 	// Buy a ticket for a certain show for a random user.
 
 	db, err := sql.Open("mysql", m.connectionString+"ticketshop?parseTime=true")
@@ -269,6 +274,9 @@ func (m mysql) buy(showId int64) bool {
 		return false
 	}
 
+	elapsed := time.Since(start)
+	updateTimeToBuy(m.myMon, elapsed)
+
 	return true
 }
 
@@ -288,13 +296,14 @@ func (m mysql) ticketsSold() int64 {
 	return int64(ticketCount)
 }
 
-func NewSpanner(connectionString string) myspanner {
+func NewSpanner(connectionString string, myMon *mon) myspanner {
 	thespanner := myspanner{}
 
 	ctx := context.Background()
 	adminClient, dataClient := createSpannerClients(ctx, connectionString)
 
 	thespanner.connectionString = connectionString
+	thespanner.myMon = myMon
 	thespanner.client = dataClient
 	thespanner.adminClient = adminClient
 	thespanner.ctx = ctx
@@ -386,8 +395,10 @@ func (s myspanner) get(class string) []interface{} {
 
 func (s myspanner) buy(showId int64) bool {
 
-	// Since we do not have users, we just hash a random number and use this as the random user. This might fail but YOLO.
+	// Start the timer
+	start := time.Now()
 
+	// Since we do not have users, we just hash a random number and use this as the random user. This might fail but YOLO.
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 	userHid := shaStringFromInt(int64(r1.Int()))
@@ -444,6 +455,9 @@ func (s myspanner) buy(showId int64) bool {
 
 		return nil
 	})
+
+	elapsed := time.Since(start)
+	updateTimeToBuy(s.myMon, elapsed)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -558,5 +572,14 @@ func shaStringFromInt(number int64) string {
 	numberString := strconv.FormatInt(number, 10)
 	hash := sha256.Sum256([]byte(numberString))
 	return fmt.Sprintf("%x\n", hash)
+
+}
+
+// Update the stackdriver counter of the time it takes to buy a ticket.
+func updateTimeToBuy(m *mon, duration time.Duration) {
+
+	metricType := "custom.googleapis.com/timetobuy"
+	mseconds := int64(duration / time.Millisecond)
+	m.writeTimeSeriesValue(mseconds, metricType)
 
 }

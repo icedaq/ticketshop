@@ -24,4 +24,3 @@ app/src/*
 
 # Kubernetes secrets
 kubernetes/service-account.json
-

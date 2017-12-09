@@ -45,3 +45,10 @@ spec:
         ports:
         - containerPort: 9001
           name: ticketserver
+        volumeMounts:
+            - name: "certs"
+              mountPath: "/etc/ssl/certs"
+      volumes:
+        - name: "certs"
+          hostPath:
+            path: "/etc/ssl/certs"

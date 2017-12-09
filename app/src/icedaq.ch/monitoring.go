@@ -109,14 +109,35 @@ func (m mon) createCustomMetric() error {
 		Labels:      []*monitoring.LabelDescriptor{&ld},
 		MetricKind:  "GAUGE",
 		ValueType:   "INT64",
-		Unit:        "seconds",
+		Unit:        "ms",
 		Description: "Time to buy a ticket",
 		DisplayName: "Time to buy",
 	}
+
+	//_, err = m.s.Projects.MetricDescriptors.Delete("custom.googleapis.com/timetobuy").Do()
+
 	_, err = m.s.Projects.MetricDescriptors.Create(projectID, &md).Do()
 	if err != nil {
 		return fmt.Errorf("Could not create custom metric: %v", err)
 	}
+
+	// second metric: BuyTimeClient
+	ld = monitoring.LabelDescriptor{Key: "environment", ValueType: "STRING", Description: "Time to buy a ticket (client)"}
+	md = monitoring.MetricDescriptor{
+		Type:        "custom.googleapis.com/timetobuyClient",
+		Labels:      []*monitoring.LabelDescriptor{&ld},
+		MetricKind:  "GAUGE",
+		ValueType:   "INT64",
+		Unit:        "ms",
+		Description: "Time to buy a ticket (client)",
+		DisplayName: "Time to buy on client",
+	}
+
+	_, err = m.s.Projects.MetricDescriptors.Create(projectID, &md).Do()
+	if err != nil {
+		return fmt.Errorf("Could not create custom metric: %v", err)
+	}
+
 	//log.Printf("createCustomMetric: %s\n", formatResource(resp))
 	return nil
 }

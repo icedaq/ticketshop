@@ -122,6 +122,11 @@ func main() {
 		}
 
 		elapsed := time.Since(start)
+
+		// Init stackdriver
+		myMon := createMon()
+		updateTimeToBuy(myMon, elapsed)
+
 		fmt.Printf("Purchase took %s\n", elapsed)
 
 		// Log this to stackdriver.
@@ -133,4 +138,13 @@ func main() {
 func random(min, max int) int {
 	rand.Seed(time.Now().Unix())
 	return rand.Intn(max-min) + min
+}
+
+// Update the stackdriver counter of the time it takes to buy a ticket.
+func updateTimeToBuy(m *mon, duration time.Duration) {
+
+	metricType := "custom.googleapis.com/timetobuyClient"
+	mseconds := int64(duration / time.Millisecond)
+	m.writeTimeSeriesValue(mseconds, metricType)
+
 }

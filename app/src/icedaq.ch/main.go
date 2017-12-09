@@ -34,11 +34,15 @@ func main() {
 		dbConString = value
 	}
 
+	// Init stackdriver
+	myMon := createMon()
+	myMon.init()
+
 	var db mydatabase
 	if dbtype == "mysql" {
-		db = mysql{dbConString}
+		db = mysql{dbConString, myMon}
 	} else if dbtype == "spanner" {
-		db = NewSpanner(dbConString)
+		db = NewSpanner(dbConString, myMon)
 	} else {
 		fmt.Println("Unknown database backend. Exiting.")
 		os.Exit(1)
@@ -47,10 +51,6 @@ func main() {
 	// Init database
 	db.create()
 	seedDatabase(db)
-
-	// Init stackdriver
-	myMon := createMon()
-	myMon.init()
 
 	go updateTicketsSold(db, myMon)
 
@@ -132,7 +132,7 @@ func updateTicketsSold(db mydatabase, m *mon) {
 
 		m.writeTimeSeriesValue(ticketsSold, metricType)
 
-		timeout := random(1000, 10000)
+		timeout := random(1000, 5000)
 		time.Sleep(time.Duration(timeout) * time.Millisecond)
 	}
 }

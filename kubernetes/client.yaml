@@ -20,3 +20,10 @@ spec:
         env:
         - name: APIURL
           value: 'http://35.190.77.16/api'
+        volumeMounts:
+            - name: "certs"
+              mountPath: "/etc/ssl/certs"
+      volumes:
+        - name: "certs"
+          hostPath:
+            path: "/etc/ssl/certs"
